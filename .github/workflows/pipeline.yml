@@ -1,10 +1,11 @@
-name: Docker Image CI
+name: Build and Deploy Application to AKS
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
 
@@ -13,6 +14,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        run: echo saopaulo160994 | docker login -u caiotmello --password-stdin
+        
+      - name: Basket Api - Build and push Docker images
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./Services/Basket/Basket.API
+          file: ./Services/Basket/Basket.API/Dockerfile
+          push: true
+          tags: |
+            caiotmello/basketapi:v${{ github.run_number }}
+            caiotmello/basketapi:latest
+            
+      - name: Ordering Api - Build and push Docker images
+        uses: docker/build-push-action@v4.1.1
+        with:
+          context: ./Services/Ordering/Ordering.API
+          file: ./Services/Ordering/Ordering.API/Dockerfile
+          push: true
+          tags: |
+            caiotmello/orderingapi:v${{ github.run_number }}
+            caiotmello/ordering:latest
