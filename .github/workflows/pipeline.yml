@@ -24,25 +24,25 @@ jobs:
       - name: Login to Docker Hub
         run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
         
-      #- name: Basket Api - Build and push Docker images
-      #  uses: docker/build-push-action@v4.1.1
-      #  with:
-      #    context: ./src
-      #    file: ./src/Services/Basket/Basket.API/Dockerfile
-      #    push: true
-      #    tags: |
-      #      ${{ secrets.DOCKERHUB_USERNAME }}/basketapi:v${{ github.run_number }}
-      #      ${{ secrets.DOCKERHUB_USERNAME }}/basketapi:latest
+      - name: Basket Api - Build and push Docker images
+       uses: docker/build-push-action@v4.1.1
+       with:
+         context: ./src
+         file: ./src/Services/Basket/Basket.API/Dockerfile
+         push: true
+         tags: |
+           ${{ secrets.DOCKERHUB_USERNAME }}/basketapi:v${{ github.run_number }}
+           ${{ secrets.DOCKERHUB_USERNAME }}/basketapi:latest
             
-      #- name: Ordering Api - Build and push Docker images
-      #  uses: docker/build-push-action@v4.1.1
-      #  with:
-      #    context: ./src
-      #    file: ./src/Services/Ordering/Ordering.API/Dockerfile
-      #    push: true
-      #    tags: |
-      #      ${{secrets.DOCKERHUB_USERNAME}}/orderingapi:v${{ github.run_number }}
-      #      ${{secrets.DOCKERHUB_USERNAME}}/ordering:latest
+      - name: Ordering Api - Build and push Docker images
+       uses: docker/build-push-action@v4.1.1
+       with:
+         context: ./src
+         file: ./src/Services/Ordering/Ordering.API/Dockerfile
+         push: true
+         tags: |
+           ${{secrets.DOCKERHUB_USERNAME}}/orderingapi:v${{ github.run_number }}
+           ${{secrets.DOCKERHUB_USERNAME}}/ordering:latest
 
   deploy:
     runs-on: ubuntu-latest

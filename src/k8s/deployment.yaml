@@ -9,6 +9,15 @@ data:
 
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+data:
+  RABBITMQ_USER: Z3Vlc3Q=
+  RABBITMQ_PASSWORD: Z3Vlc3Q=
+  
+---
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: orderingapi-config
