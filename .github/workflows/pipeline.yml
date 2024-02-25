@@ -37,5 +37,5 @@ jobs:
           file: ./src/Services/Ordering/Ordering.API/Dockerfile
           push: true
           tags: |
-            ${{secrets.DOCKERHUB_USER}}/orderingapi:v${{ github.run_number }}
-            ${{secrets.DOCKERHUB_USER}}/ordering:latest
+            ${{secrets.DOCKERHUB_USERNAME}}/orderingapi:v${{ github.run_number }}
+            ${{secrets.DOCKERHUB_USERNAME}}/ordering:latest
