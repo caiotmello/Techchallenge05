@@ -27,7 +27,7 @@ namespace Ordering.Infrastructure.Persistence
                 new Order() {UserName = "Caio",
                     FirstName = "Mehmet",
                     LastName = "Ozkaya", 
-                    EmailAddress = "ezozkme@gmail.com",
+                    EmailAddress = "caio@email.com",
                     AddressLine = "Bahcelievler",
                     Country = "Turkey",
                     TotalPrice =300,
