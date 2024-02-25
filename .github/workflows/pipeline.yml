@@ -75,5 +75,5 @@ jobs:
       # Deploys application based on given manifest file
       - name: Deploy to AKS
         run: |
-          kucectl apply -f deployment.yaml
+          kubectl apply -f deployment.yaml
       
