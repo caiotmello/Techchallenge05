@@ -1,0 +1,97 @@
+version: '3.4'
+services:
+  sqlserverdb:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    user: root
+    restart: always
+    env_file: ./.env
+    ports:
+      - 1433:1433
+    volumes:
+      - sqlserver-data:/var/opt/mssql/data
+    environment:
+      - MSSQL_SA_PASSWORD=$SQLSERVERDB_PASSWORD
+      - ACCEPT_EULA=Y
+    expose:
+      - '1433'
+    networks:
+      - backend
+
+  redisdb:
+    image: redis:alpine
+    restart: always
+    ports:
+      - 6379:6379
+    expose:
+      - '6379'
+    networks:
+      - backend
+    tty: true
+
+  rabbitmq:
+    image: masstransit/rabbitmq
+    restart: always
+    ports:
+      - 15672:15672
+      - 5672:5672
+    expose:
+      - '15672'
+      - '5672'
+    networks:
+      - backend
+
+  basket.api:
+    image: ${DOCKER_REGISTRY-}basketapi
+    build:
+      context: .
+      dockerfile: Services\Basket\Basket.API\Dockerfile
+    restart: always
+    env_file: ./.env
+    environment:
+     - DB_HOST=redisdb
+     - DB_PORT=$REDIS_PORT
+     - RABBITMQ_HOST=rabbitmq
+     - RABBITMQ_USER=$RABBITMQ_USER
+     - RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD
+     - RABBITMQ_PORT=$RABBITMQ_PORT
+    ports:
+      - 8888:8080
+      - 8889:8081
+    networks:
+      - backend
+    depends_on:
+      - redisdb
+      - rabbitmq
+
+  ordering.api:
+    image: ${DOCKER_REGISTRY-}orderingapi
+    build:
+      context: .
+      dockerfile: Services/Ordering/Ordering.API/Dockerfile
+    restart: always
+    env_file: ./.env
+    environment:
+     - DB_HOST=sqlserverdb
+     - DB_USER=$SQLSERVERDB_USER
+     - DB_PASSWORD=$SQLSERVERDB_PASSWORD
+     - DB_NAME=$SQLSERVERDB_DATABASE
+     - DB_PORT=$SQLSERVERDB_PORT
+     - RABBITMQ_HOST=rabbitmq
+     - RABBITMQ_USER=$RABBITMQ_USER
+     - RABBITMQ_PASSWORD=$RABBITMQ_PASSWORD
+     - RABBITMQ_PORT=$RABBITMQ_PORT
+    ports:
+      - 8878:8080
+      - 8879:8081
+    networks:
+      - backend
+    depends_on:
+      - sqlserverdb
+      - rabbitmq
+
+networks:
+  backend:
+    driver: 'bridge'
+volumes:
+  sqlserver-data:
+

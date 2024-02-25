@@ -1,0 +1,251 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sqlserverdb-secret
+type: Opaque
+data:
+  DB_USER: c2E=
+  DB_PASSWORD: MXFheiFRQVo=
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderingapi-config
+data:
+  DB_HOST: sqlserver-service
+  DB_PORT: "1433"
+  DB_NAME: OrderDb
+  RABBITMQ_HOST: rabbitmq-service
+  RABBITMQ_PORT: "15672"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: basketapi-config
+data:
+  DB_HOST: redis-service
+  DB_PORT: "6379"
+  RABBITMQ_HOST: rabbitmq-service
+  RABBITMQ_PORT: "15672"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sqlserver-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sqlserver-pod
+  template:
+    metadata:
+      labels:
+        app: sqlserver-pod
+    spec:
+      containers:
+        - name: sqlserverdb
+          image: mcr.microsoft.com/mssql/server:2022-latest
+          ports:
+            - containerPort: 1433
+          env:
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sqlserverdb-secret
+                  key: DB_PASSWORD
+            - name: ACCEPT_EULA
+              value: "Y"
+          volumeMounts:
+            - name: sqlserver-data
+              mountPath: /var/opt/mssql/data
+      volumes:
+        - name: sqlserver-data
+          emptyDir: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redisdb-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-pod
+  template:
+    metadata:
+      labels:
+        app: redis-pod
+    spec:
+      containers:
+        - name: redisdb
+          image: redis:alpine
+          ports:
+            - containerPort: 6379
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-pod
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-pod
+    spec:
+      containers:
+        - name: rabbitmq
+          image: masstransit/rabbitmq
+          ports:
+            - containerPort: 15672
+            - containerPort: 5672
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderingapi-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderingapi-pod
+  template:
+    metadata:
+      labels:
+        app: orderingapi-pod
+    spec:
+      containers:
+        - name: orderingapi
+          image: caiotmello/orderingapi:latest
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: orderingapi-config
+            - secretRef:
+                name: rabbitmq-secret
+            - secretRef:
+                name: sqlserverdb-secret
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basketapi-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basketapi-pod
+  template:
+    metadata:
+      labels:
+        app: basketapi-pod
+    spec:
+      containers:
+        - name: basketapi
+          image: caiotmello/basketapi:latest
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: basketapi-config
+            - secretRef:
+                name: rabbitmq-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sqlserver-service
+spec:
+  selector:
+    app: sqlserver-pod
+  ports:
+    - protocol: TCP
+      port: 1433
+      targetPort: 1433
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis-pod
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+spec:
+  selector:
+    app: rabbitmq-pod
+  ports:
+    - name: http
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+    - name: custom-port
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderingapi-service
+spec:
+  selector:
+    app: orderingapi-pod
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8878
+      targetPort: 8080
+    - name: https
+      protocol: TCP
+      port: 8879
+      targetPort: 8081
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: basketapi-service
+spec:
+  selector:
+    app: basketapi-pod
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8888
+      targetPort: 8080
+    - name: https
+      protocol: TCP
+      port: 8889
+      targetPort: 8081
+  type: LoadBalancer
+

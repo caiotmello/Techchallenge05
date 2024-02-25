@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq-secret
+data:
+  RABBITMQ_USER: Z3Vlc3Q=
+  RABBITMQ_PASSWORD: Z3Vlc3Q=
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-pod
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-pod
+    spec:
+      containers:
+        - name: rabbitmq
+          image: masstransit/rabbitmq
+          ports:
+            - containerPort: 15672
+            - containerPort: 5672
+ 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+spec:
+  selector:
+    app: rabbitmq-pod
+  ports:
+    - name: http
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+    - name: custom-port
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+  type: LoadBalancer
