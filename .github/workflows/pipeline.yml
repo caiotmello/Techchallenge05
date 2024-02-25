@@ -72,5 +72,8 @@ jobs:
             cluster-name: ${{env.CLUSTER_NAME}}
             resource-group: ${{env.RESOURCE_GROUP}}
                       
-      
+      # Deploys application based on given manifest file
+      - name: Deploy to AKS
+        run: |
+          kucectl apply -f deployment.yaml
       
