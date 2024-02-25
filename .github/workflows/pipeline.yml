@@ -19,6 +19,9 @@ jobs:
 
       - name: Login to Docker Hub
         run: echo saopaulo160994 | docker login -u caiotmello --password-stdin
+
+      - name: teste 
+        run: echo pwd | echo ls
         
       - name: Basket Api - Build and push Docker images
         uses: docker/build-push-action@v4.1.1
