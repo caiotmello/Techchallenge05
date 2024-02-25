@@ -9,7 +9,7 @@ on:
 
 env:
   CLUSTER_NAME: "techchallenge05"
-  RESOURCE_GROUP: "rg-techchallenge05"
+  RESOURCE_GROUP: "rg_techchallenge05"
   
 jobs:
 
