@@ -23,8 +23,8 @@ jobs:
       - name: Basket Api - Build and push Docker images
         uses: docker/build-push-action@v4.1.1
         with:
-          context: ./Services/Basket/Basket.API
-          file: ./Services/Basket/Basket.API/Dockerfile
+          context: ./src/Services/Basket/Basket.API
+          file: ./src/Services/Basket/Basket.API/Dockerfile
           push: true
           tags: |
             caiotmello/basketapi:v${{ github.run_number }}
@@ -33,8 +33,8 @@ jobs:
       - name: Ordering Api - Build and push Docker images
         uses: docker/build-push-action@v4.1.1
         with:
-          context: ./Services/Ordering/Ordering.API
-          file: ./Services/Ordering/Ordering.API/Dockerfile
+          context: ./src//Services/Ordering/Ordering.API
+          file: ./src//Services/Ordering/Ordering.API/Dockerfile
           push: true
           tags: |
             caiotmello/orderingapi:v${{ github.run_number }}
