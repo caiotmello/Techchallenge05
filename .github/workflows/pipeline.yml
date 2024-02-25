@@ -53,6 +53,14 @@ jobs:
         uses: azure/login@v1.4.6
         with:
             creds: ${{ secrets.AZURE_CREDENTIALS }}
-        
+
+      # Retrieves your Azure Kubernetes Service cluster's kubeconfig file
+      - name: Set Azure AKS context
+        uses: azure/aks-set-context@v1
+        with:
+            creds: ${{ secrets.AZURE_CREDENTIALS }}
+            cluster-name: ${{env.CLUSTER_NAME}}
+            resource-group: ${{env.RESOURCE_GROUP}}
+                      
       
       
