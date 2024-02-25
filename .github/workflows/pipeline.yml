@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Login to Docker Hub
-        run: echo saopaulo160994 | docker login -u caiotmello --password-stdin
+        run: echo ${{secrets.DOCKERHUB_PASSWORD}} | docker login -u ${{secrets.DOCKERHUB_USER}} --password-stdin
         
       - name: Basket Api - Build and push Docker images
         uses: docker/build-push-action@v4.1.1
@@ -27,8 +27,8 @@ jobs:
           file: ./src/Services/Basket/Basket.API/Dockerfile
           push: true
           tags: |
-            caiotmello/basketapi:v${{ github.run_number }}
-            caiotmello/basketapi:latest
+            ${{secrets.DOCKERHUB_USER}}/basketapi:v${{ github.run_number }}
+            ${{secrets.DOCKERHUB_USER}}/basketapi:latest
             
       - name: Ordering Api - Build and push Docker images
         uses: docker/build-push-action@v4.1.1
@@ -37,5 +37,5 @@ jobs:
           file: ./src/Services/Ordering/Ordering.API/Dockerfile
           push: true
           tags: |
-            caiotmello/orderingapi:v${{ github.run_number }}
-            caiotmello/ordering:latest
+            ${{secrets.DOCKERHUB_USER}}/orderingapi:v${{ github.run_number }}
+            ${{secrets.DOCKERHUB_USER}}/ordering:latest
