@@ -7,6 +7,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  CLUSTER_NAME: "techchallenge05"
+  RESOURCE_GROUP: "rg-techchallenge05"
+  
 jobs:
 
   build:
