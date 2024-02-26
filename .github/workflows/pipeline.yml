@@ -40,7 +40,7 @@ jobs:
           push: true
           tags: |
            ${{secrets.DOCKERHUB_USERNAME}}/orderingapi:v${{ github.run_number }}
-           ${{secrets.DOCKERHUB_USERNAME}}/ordering:latest
+           ${{secrets.DOCKERHUB_USERNAME}}/orderingapi:latest
 
   deploy:
     runs-on: ubuntu-latest
