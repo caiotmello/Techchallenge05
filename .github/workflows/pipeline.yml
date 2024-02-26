@@ -17,7 +17,13 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Restaurar pacotes
+        run: dotnet restore
+
+      - name: Publicar apliocação
+        run: dotnet publish -c Release -o ./publish
 
       - name: Login to Docker Hub
         run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
