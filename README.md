@@ -1,17 +1,18 @@
-# Techchallenge04 - Design de um Producer e Consumer utilziando RabbitMq para um E-commerce
+# Techchallenge05 - Deploy de dois microserviços no AKS  com github actions
 
-Tech Challenge 04 engloba o desenvolvimento de uma aplicação que implementa um producer que envia os dados para um broker (RABBITMQ) e um consumer que recebe esses dados e trata-os.
+Tech Challenge 05 consta na elaboração do arquivo dockerfile de dois microsserviço (BasketApi e OrderingApi) de um E-Commerce, fazendo a publicação das novas imagens no Docker hub. Além disso, é feito o deploy da aplicação no AKS do Azure através do uso do github actions.
 Para realização do desafio proposto, foi realizada a criação de dois microserviços Basket e Ordering connectados por um broker RabbitMQ para produzir e consumir eventos gerados entre os microserviços.
 Abaixo é possível verificar a arquitetura da Applicação por completa:
-![TechChallenge04 Arquitetura](docs/ArquiteturaECommerce.png)
+![TechChallenge05 Arquitetura](docs/ArquiteturaECommerce.png)
 
 Foi criada uma biblioteca chamada EventBus.Messages que prove a comunicação entre o microsserviço de Basket e Ordering.
 
 A Implementação do Barramento de dados com RabbitMQ e Masstransit, na qual, os microserviços publicam eventos e recebem eventos é exibido na imagem abaixo:
 
-![TechChallenge04 EventBus](docs/EventBus.png)
+![TechChallenge05 EventBus](docs/EventBus.png)
 
-A API Orderring foi feita utilizando EntityFramework com SQL Server aplicando arquitetura limpa e CQRS com mediator.
+A API Ordering foi feita utilizando EntityFramework com SQL Server aplicando arquitetura limpa e CQRS com mediator.
+Já a API Basket foi feita utilizando EntityFramework com REDIS.
 
 Funciomento:
 
@@ -20,6 +21,20 @@ Funciomento:
 3.  O microserviço Basket recebe a informação e começa a tratar o dados como remover os itens da cesta do redis e envia-lo para o broker.
 4.  É feita a publicação do evento BaketCheckout para o RabbitMQ utilizando o MassTransit.
 5.  Os microserviços subescritos para receber esse evento, no caso, o microserviço Ordering, irá receber e consumir o evento para criar o pedido e salvar no banco de dados SQL.
+
+
+## CI/CD
+
+Esse projeto possui um pipeline de integração e entrega continua (CI/CD) com github action , de modo de automatizar o processo. O fluxo desse processo pode ser visto na imagem abaixo:
+
+![TechChallenge05 CI&CD](docs/ContinuosIntegrationProcess.png)
+
+1. O desenvolvedor faz um push para o repositório do github na branch master.
+2. O pipeline do GitHub Actions é iniciado.
+3. Inicia-se o processo de criação das imagens para cada um dos microserviços a partir do dockerfile correspontende.
+4. Após a conclusão de build da imagem, a mesma é carregada no Dockerhub.
+5. Com as novas imagens no Docker Hub, é feito o deploy da nossa solução completa em um cluste kubernetes, na qual, foi utilziado o AKS do azure. O arquivo de deploy do kubernetes utilizado pode ser encontrado na pasta `/src/k8s/deployment.yaml`.
+6. Cluster kubernetes atualizado e aplicação disponibilizada para o usuário.
 
 ## Aplicação
 
@@ -30,7 +45,7 @@ Para fazer o o comando de checkout é necessário antes ter adicionado pelo meno
 
 Para testar a API é necessário criart todo infraestrutura antes. As URLS de acesso será da seguiinte forma:
 
-1. URL `https://localhost:<PORT>/swagger/index.html` para acesso via Swagger.
+1. URL `https://<AKS_DNS_SERVICE>:<PORT>/swagger/index.html` para acesso via Swagger.
 
 ### Métodos
 
@@ -79,53 +94,44 @@ OBS: Deve ser criado antes ao menos um autor e uma categoria para ser passada de
 
 1. Visual Studio 2022
 2. .NET 8
-3. Docker Desktop
+3. Azure AKS
 
-### Configuração da Infraestrutura do docker
+### Configuração
 
-1. Configurar o SQL Server <br />
-   Executar o seguinte comando no prompt de comando:
+1. Criação do cluster kubernetes no AKS<br/>
+   Fazer a criação de um cluster kubernetes no aks, fazer os seguintes comandos a partir do Azure CLI.
+  ```
+  az login
+  az group create --name myResourceGroup --location eastus
+  az aks create --resource-group myResourceGroup --name myAKSCluster --node-count 1
+  ```
+2. Recuperar as credenciais do Azure para autenticação do github actions com Azure.<br/>
+  ```
+    az ad sp create-for-rbac --name "GitHubActions" --role Contributor --scopes /subscriptions/{subscription-id}/resourceGroups/{resource-group} --sdk-auth
+  ```
+  Esse comando irá retornar um Json com todoas suas credenciais com azure. Esse Json deve ser guardado em uma Secret to github para ser utilizado pelo pipeline de deploy.
+    
 
+### Extras
+1. OPCIONAL - Subir aplicação utilizando Docker Compose<br />
+   Alterar os parametros de configuração no arquivo `./src/.env`
 ```
-  COLOCAR O COMANDO AQUI
-```
+SQLSERVERDB_USER=<USER>
+SQLSERVERDB_PASSWORD=<PASSWORD>
+SQLSERVERDB_DATABASE=<DATABASE_NAME>
+SQLSERVERDB_PORT=1433
 
-Alterar os parâmetros do appsettings em `Ordering.Api/appsetting.json`
+REDIS_HOST=redisdb
+REDIS_PORT=6379
 
-```
-  "ConnectionStrings": {
-    "OrderingConnectionString": "<SQL_CONNECTION_STRING>"
-  },
-```
-
-2. Configurar o Redis <br/>
-   Executar o seguinte comando no prompt de comando:
-
-```
-COLOCAR O COMANDO AQUI
-```
-
-Alterar os parâmetros do appsettings em `Basket.Api/appsetting.json`
-
-```
-"CacheSettings": {
-    "ConnectionString": "<REDIS_CONNECTION_STRING>
-  }
-```
-
-3. Configurar o MassTransit <br/>
-   Executar o seguinte comando no prompt de comando:
-
-```
-COLOCAR O COMANDO AQUI
+RABBITMQ_USER=<RABBITMQ_USER>
+RABBITMQ_PASSWORD=<RABBITMQ_PASSWORD>
+RABBITMQ_PORT=15672
 ```
 
-Alterar os parâmetros do appsettings em `Basket.Api/appsetting.json` e `Ordering.Api/appsetting.json`
+2. Após a configuração, executar o seguinte comando no prompt de comando a partir da pasta `./src`:
 
 ```
-"EventBusSettings": {
-    "Server": "<MASSTRANSIT_HOSTNAME>",
-    "User": "<MASSTRANSIT_USER>",
-    "Password": "<MASSTRANSIT_PASSWORD>"
-  },
+  docker-compose up na
 ```
+
